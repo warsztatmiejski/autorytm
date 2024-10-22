@@ -25,7 +25,6 @@
     </style>
 </head>
 <body>
-    <div id="controls"></div>
     <canvas id="beatCanvas"></canvas>
     <script>
         const audioFolder = 'audio/';
@@ -33,7 +32,7 @@
             'kick.wav',
             'snare.wav',
             'hihat.wav',
-            'clap.wav'
+            'tom.wav'
         ];
 
         const numTracks = soundLibrary.length;
@@ -41,9 +40,8 @@
         const cellSize = 40;
         const canvas = document.getElementById('beatCanvas');
         const ctx = canvas.getContext('2d');
-        const controlsDiv = document.getElementById('controls');
 
-        canvas.width = numBeats * cellSize;
+        canvas.width = (numBeats + 1) * cellSize;
         canvas.height = numTracks * cellSize;
 
         let beatGrid = Array.from({ length: numTracks }, () => Array(numBeats).fill(false));
@@ -64,7 +62,19 @@
                 select.addEventListener('change', (e) => {
                     sounds[i] = new Audio(e.target.value);
                 });
-                controlsDiv.appendChild(select);
+                const x = 0;
+                const y = i * cellSize;
+                ctx.fillStyle = '#444';
+                ctx.fillRect(x, y, cellSize, cellSize);
+                ctx.strokeStyle = '#555';
+                ctx.strokeRect(x, y, cellSize, cellSize);
+                ctx.fillStyle = '#fff';
+                ctx.font = '12px Arial';
+                ctx.fillText(soundLibrary[i].split('.')[0], x + 5, y + 20);
+                select.style.position = 'absolute';
+                select.style.left = `${x + 5}px`;
+                select.style.top = `${y + 5}px`;
+                document.body.appendChild(select);
             }
         }
 
@@ -73,22 +83,22 @@
             for (let track = 0; track < numTracks; track++) {
                 for (let beat = 0; beat < numBeats; beat++) {
                     ctx.strokeStyle = '#555';
-                    ctx.strokeRect(beat * cellSize, track * cellSize, cellSize, cellSize);
+                    ctx.strokeRect((beat + 1) * cellSize, track * cellSize, cellSize, cellSize);
                     if (beatGrid[track][beat]) {
                         ctx.fillStyle = '#00ff00';
-                        ctx.fillRect(beat * cellSize + 2, track * cellSize + 2, cellSize - 4, cellSize - 4);
+                        ctx.fillRect((beat + 1) * cellSize + 2, track * cellSize + 2, cellSize - 4, cellSize - 4);
                     }
                 }
             }
             // Highlight current beat
             ctx.fillStyle = 'rgba(255, 255, 0, 0.2)';
-            ctx.fillRect(currentBeat * cellSize, 0, cellSize, canvas.height);
+            ctx.fillRect((currentBeat + 1) * cellSize, 0, cellSize, canvas.height);
         }
 
         function toggleCell(x, y) {
-            const beat = Math.floor(x / cellSize);
+            const beat = Math.floor(x / cellSize) - 1;
             const track = Math.floor(y / cellSize);
-            if (track < numTracks && beat < numBeats) {
+            if (track < numTracks && beat >= 0 && beat < numBeats) {
                 beatGrid[track][beat] = !beatGrid[track][beat];
             }
         }
