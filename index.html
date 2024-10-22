@@ -9,10 +9,14 @@
             margin: 0;
             overflow: hidden;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             background: #282c34;
+        }
+        #controls {
+            margin-bottom: 10px;
         }
         canvas {
             border: 1px solid #444;
@@ -21,27 +25,48 @@
     </style>
 </head>
 <body>
+    <div id="controls"></div>
     <canvas id="beatCanvas"></canvas>
     <script>
+        const audioFolder = 'audio/';
         const soundLibrary = [
             'kick.wav',
             'snare.wav',
             'hihat.wav',
             'clap.wav'
         ];
-        
+
         const numTracks = soundLibrary.length;
         const numBeats = 16;
         const cellSize = 40;
         const canvas = document.getElementById('beatCanvas');
         const ctx = canvas.getContext('2d');
-        
+        const controlsDiv = document.getElementById('controls');
+
         canvas.width = numBeats * cellSize;
         canvas.height = numTracks * cellSize;
 
         let beatGrid = Array.from({ length: numTracks }, () => Array(numBeats).fill(false));
         let currentBeat = 0;
-        const sounds = soundLibrary.map(sound => new Audio(sound));
+        let sounds = soundLibrary.map(sound => new Audio(audioFolder + sound));
+
+        // Create dropdowns for selecting sounds
+        function createTrackControls() {
+            for (let i = 0; i < numTracks; i++) {
+                const select = document.createElement('select');
+                soundLibrary.forEach((sound, index) => {
+                    const option = document.createElement('option');
+                    option.value = audioFolder + sound;
+                    option.textContent = sound;
+                    if (index === i) option.selected = true;
+                    select.appendChild(option);
+                });
+                select.addEventListener('change', (e) => {
+                    sounds[i] = new Audio(e.target.value);
+                });
+                controlsDiv.appendChild(select);
+            }
+        }
 
         function drawGrid() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -89,6 +114,7 @@
 
         setInterval(playBeat, 150); // 150ms per beat (~100 BPM)
 
+        createTrackControls();
         drawGrid();
     </script>
 </body>
