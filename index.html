@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Beatmaker</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #282c34;
+        }
+        canvas {
+            border: 1px solid #444;
+            background: #333;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="beatCanvas"></canvas>
+    <script>
+        const soundLibrary = [
+            'kick.wav',
+            'snare.wav',
+            'hihat.wav',
+            'clap.wav'
+        ];
+        
+        const numTracks = soundLibrary.length;
+        const numBeats = 16;
+        const cellSize = 40;
+        const canvas = document.getElementById('beatCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = numBeats * cellSize;
+        canvas.height = numTracks * cellSize;
+
+        let beatGrid = Array.from({ length: numTracks }, () => Array(numBeats).fill(false));
+        let currentBeat = 0;
+        const sounds = soundLibrary.map(sound => new Audio(sound));
+
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let track = 0; track < numTracks; track++) {
+                for (let beat = 0; beat < numBeats; beat++) {
+                    ctx.strokeStyle = '#555';
+                    ctx.strokeRect(beat * cellSize, track * cellSize, cellSize, cellSize);
+                    if (beatGrid[track][beat]) {
+                        ctx.fillStyle = '#00ff00';
+                        ctx.fillRect(beat * cellSize + 2, track * cellSize + 2, cellSize - 4, cellSize - 4);
+                    }
+                }
+            }
+            // Highlight current beat
+            ctx.fillStyle = 'rgba(255, 255, 0, 0.2)';
+            ctx.fillRect(currentBeat * cellSize, 0, cellSize, canvas.height);
+        }
+
+        function toggleCell(x, y) {
+            const beat = Math.floor(x / cellSize);
+            const track = Math.floor(y / cellSize);
+            if (track < numTracks && beat < numBeats) {
+                beatGrid[track][beat] = !beatGrid[track][beat];
+            }
+        }
+
+        function playBeat() {
+            for (let track = 0; track < numTracks; track++) {
+                if (beatGrid[track][currentBeat]) {
+                    sounds[track].currentTime = 0;
+                    sounds[track].play();
+                }
+            }
+            currentBeat = (currentBeat + 1) % numBeats;
+            drawGrid();
+        }
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            toggleCell(x, y);
+            drawGrid();
+        });
+
+        setInterval(playBeat, 150); // 150ms per beat (~100 BPM)
+
+        drawGrid();
+    </script>
+</body>
+</html>
